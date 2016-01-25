@@ -1,0 +1,165 @@
+---
+title: "Cost Estimate of Reinforced Soil Wall"
+author: "Vipin Kumar Tyagi"
+date: "January 24, 2016"
+output: html_document
+  
+---
+
+## 1.0 Problem Description
+
+Reinforced Soil Wall is considered to be the best retaining structure due to cost-effectiveness and technical superiority over other retaining structures. It may be designed for 120 years and is dynamically stable as it can withstand eartquakes of high magnitudes.
+
+This document analyses the budgetary cost of reinforcing material for a reinforced soil wall for varying geometry, soil profiles, surcharge loads and different reinforcing materials. The exact estimation involves rigorous designing for cost optimization using design codes and costing may vary due to its dependency on geometrical, soil profile, surcharge loads and type of reinforcing material used and thus requires considerable engineering expertise, time and money. However, various agencies concerned with the project like civil contractor, estimation engineer and consultant may like to have a quick and nearly accurate estimate for quoting, preparing tender or optimization using appropriate reinforcing material without incurring cost and time overrun.  
+
+Exhaustive data on costing of reinforced soil wall has been compiled using various design codes (BS 8006, FHWA), different geometries, soil profiles, surcharge loads and reinforcing materials. This data has been different reinforced soil walls of heights varying between 3 m and 20 m, angle of internal friction ($\phi$) varying from 25 degree to 40 degree, surcharge from 14 kN/m2 to 24 kN/m2, unit weight of soil ($\gamma$) varying from 14 kN/m3 to 24 kN/m3, vertical spacing of reinforcement varying from 200 mm to 900 mm, and reinforcement material in form of polymeric strips, geogrids and woven geotextiles. The cost of reinforcing material comprises of market prices of different grades of material based on their ultimate tensile strength and their relative proportions being used in wall. This cost has been normalized in units of USD/sqm of facia area of wall based on current market prices of reinforcing material. This normalized cost can be varied based on variation in market rates.
+
+## 2.0 Downloading the data
+File can be downloaded using this link [rew]https://dl.dropboxusercontent.com/u/26659807/rew1.csv.
+
+```{r}
+rew <- read.csv('rew1.csv')
+str(rew)
+```
+
+## 3.0 Exploratory Analysis of Data
+
+First, let us perform exploratory analysis. First let us start by doing multiple linear regression on this data.
+
+```{r}
+rew1 <- lm(USDPERSQM ~ ., data = rew)
+summary(rew1)
+```
+### 3.1 Analyzing the linear regression results
+
+The summary shows the estimated coefficients. It shows the critical statistics, such as R^2^ and the F statistic. It shows an estimate of $\sigma$, the standard error of the residuals.The model summary is important because it links you to the most critical regression statistics.
+Ideally, the regression residuals should have a perfect, normal distribution. These
+statistics help you identify possible deviations from normality. The OLS algorithm
+is mathematically guaranteed to produce residuals with a mean of zero. Hence the
+sign of the median indicates the skew???s direction, and the magnitude of the median
+indicates the extent. In this case the median is slightly negative, which suggests some skew to the left.
+
+If the residuals have a nice, bell-shaped distribution, then the first quartile (1Q)
+and third quartile (3Q) should have about the same magnitude. In this example,
+the larger magnitude of 1Q versus 3Q (0.3444 versus 0.2820) indicates a slight
+skew to the left in our data, although the negative median makes the situation
+less clear-cut.
+
+The Min and Max residuals offer a quick way to detect extreme outliers in the data,
+since extreme outliers (in the response variable) produce large residuals.If we observe the extreme residuals then we find that deviations is very small indicating the absence of any extreme outlier.
+
+Now, let us diagonize the `coefficients`. The column labeled `Estimate` contains the estimated regression coefficients as calculated by method of ordinary least squares.Theoretically, if a predictor's coefficient is zero then the variable is insignificant; it adds nothing to the model. Yet the coefficients shown here are only estimates, and they will never be exactly zero. We therefore ask: Statistically speaking, how likely is it that the true coefficient is zero? That is the purpose of the t statistics and the p-values, which in the summary are labeled (respectively) `t` value and `Pr(>|t|)`. However, we can observe that two variables - `LENGTH` and `AREASQM` are virtually zero and values of `Pr` for them are above 0.05 and thus it appears that they are insignificant from regression purpose. Again we observe that their actual values are very high and they may have to be scaled to find their actual role in regression analysis rather outrightly rejecting them. 
+
+The p-value is a probability. It gauges the likelihood that the coefficient is not
+significant, so smaller is better. Big is bad because it indicates a high likelihood of insignificance. In this example, the p-value for the `LENGTH` coefficient is 0.513518, so it u is likely insignificant. The p-value for `AREASQM` is 0.742096; this is very much over 0.05 and hence insignificant. However, our conclusion will be final after normalizing our data.
+
+A handy feature of summary module in R is that it flags the significant variables for quick identification. That column highlights the significant variables. The line labeled `Signif. codes` at the bottom gives a cryptic guide to the flags??? meanings.
+
+The column labeled `Std. Error` is the standard error of the estimated coefficient. The column labeled `t value` is the t statistic from which the p-value was calculated.
+
+#### Residual standard error
+
+**Residual standard error: 0.6204 on 60 degrees of freedom**
+This reports the standard error of the residuals ($\sigma$) that is, the sample standard deviation.
+
+#### R^2^ (coefficient of determination)
+
+**Multiple R-squared: 0.967, Adjusted R-squared: 0.9626**
+R2 is a measure of the model???s quality. Bigger is better. Mathematically, it is the
+fraction of the variance of y that is explained by the regression model. The remaining variance is not explained by the model, so it must be due to other factors (i.e., unknown variables or sampling variability). In this case, the model explains 0.9626 (96.26%) of the variance of y, and the remaining 0.0374 (3.74%) is unexplained.It is strongly suggested to use the adjusted rather than the basic R^2^. The adjusted value accounts for the number of variables in your model and so is a more realistic assessment of its effectiveness. In this case, then, I would recommend using 0.9626, not 0.967.
+
+#### F statistic
+
+**F-statistic: 219.6 on 8 and 60 DF, p-value: < 2.2e-16**
+The F statistic tells you whether the model is significant or insignificant. The model is significant if any of the coefficients are nonzero (i.e., if $\beta$i ??? 0 for some i). It is insignificant if all coefficients are zero Conventionally, a p-value of less than 0.05 indicates that the model is likely significant are nonzero) whereas values exceeding 0.05 indicate that the model is likely to be not significant. Here, the probability is only 2.2e-16 that our model is significant. That???s good. It is common practice to look at the R^2^ statistic first. The statistician wisely starts with the F statistic, for if the model is not significant then nothing else matters.
+
+#### 3.1.1 Normalizing the dataset
+
+As discussed above, let us do exploratory analysis after scaling the LENGTH AND AREA coefficients in the data.
+
+```{r}
+rew_scale <- rew
+rew_scale$NLength <- scale(rew_scale$LENGTH)
+rew_scale$NAREA <- scale(rew_scale$AREASQM)
+rew_scale$LENGTH <- NULL
+rew_scale$AREASQM <- NULL
+rew2 <- lm(USDPERSQM ~ ., data = rew_scale)
+summary(rew2)
+```
+
+It is observed that estimate values of both parameters have increased and give us the false notion of them being significant but probability estimate values of Pr|t| still marks them as insignificants. Thus we will have to omit these predictors from the dataset for regression analysis.
+
+#### 3.1.2 Revised multiple linear regression analysis after omission
+
+Revised analysis is being done after omitting **LENGTH** and **AREASQM** predictors.
+
+```{r}
+rew3 <- lm(USDPERSQM ~ .-AREASQM-LENGTH, data = rew)
+summary(rew3)
+```
+
+It is observed that value of adjusted R^2^ has improved slightly from 0.9626 to 0.9633 after omitting insignificant predictors. Now let us try to perform regression using interaction terms.
+
+#### 3.1.3 Performing multiple linear regression analysis using interaction terms
+
+In regression, an interaction occurs when the product of two predictor variables is also a significant predictor (i.e., in addition to the predictor variables themselves).
+
+The step function can perform stepwise regression, either forward or backward. Backward stepwise regression starts with many variables and removes the underperformers. When you have many predictors, it can be quite difficult to choose the best subset. Adding and removing individual variables affects the overall mix, so the search for ???the best??? can become tedious.The step function automates that search. Backward stepwise regression is the easiest approach. We start with a model that includes all the predictors. We call that the full model. The model summary, shown here, indicates that not all predictors are statistically significant.
+
+```{r}
+full.model <- lm(USDPERSQM ~ (.-LENGTH - AREASQM)^2, data = rew) # All possible interactions
+rew4 <- step(full.model, direction = 'backward', trace = 0)
+summary(rew4)
+```
+
+After conducting regression analysis using interaction terms, we find that interaction terms are important and one individual predictor ``FRICTIONANGLE`` is insignificant. One interaction predictor ``MAXIMUMHEIGHT:FRICTIONANGLE`` is also insignificant. Value of adjusted R^2^ has also improved from 0.9633 to 0.9795. Let us carry out revised regression analysis after omission of insignificant terms.
+
+```{r}
+rew5 <- lm(USDPERSQM ~ MAXIMUMHEIGHT + MINIMUMHEIGHT + SURCHARGE + UNITWEIGHT + VERTSPACING + MAXIMUMHEIGHT:MINIMUMHEIGHT + MAXIMUMHEIGHT:SURCHARGE + MINIMUMHEIGHT:VERTSPACING + SURCHARGE:VERTSPACING + UNITWEIGHT:VERTSPACING, data = rew )
+summary(rew5)
+```
+
+A new fact emerges from this regression analysis that predictor **MAXIMUM HEIGHT:SURCHARGE** is insignificant. Adjusted R^2^ value drops slightly from 0.9795 to 0.9755 but we have also omitted two predictors as well. Let us omit this insignificant predictor as well.
+
+```{r}
+rew6 <- lm(USDPERSQM ~ MAXIMUMHEIGHT + MINIMUMHEIGHT + SURCHARGE + UNITWEIGHT + VERTSPACING + MAXIMUMHEIGHT:MINIMUMHEIGHT + MINIMUMHEIGHT:VERTSPACING + SURCHARGE:VERTSPACING + UNITWEIGHT:VERTSPACING, data = rew )
+summary(rew6)
+```
+
+Now our multiple regression analysis is complete. Adjusted R^2^ value is slightly less from 0.9755 to 0.9754 but we have also got rid of one predictor thus simplyfying our analysis. Further if we observe the resudual analysis, we find that residual summary is tending towards normalized trend as value of 1Q and 3Q are very much same and median value is gravitating towards zero.
+
+### 3.2 Diagonizing the Linear Regression
+
+Now we have performed linear regression. We want to verify the model's quality by running diagnostic checks. We start by producing several diagnostic plots by plotting the model object **rew6**.
+
+```{r}
+plot(rew6,1)
+```
+
+#### 3.2.1 Residuals vs Fitted Plot
+
+The points in the Residuals vs Fitted plot are randomly scattered with no particular pattern. This is a sign of pretty good regression. However, certain points like 27, 42 and 51 appear to be outlier. 
+
+```{r}
+plot(rew6,2)
+```
+
+#### 3.2.2 Normal Q-Q Plot
+
+The points in normal Q-Q plot are more or less on the line, indicating that the residuals follow a normal distribution. However observation no. 14 has not been plotted and warning for the same is issued. Observations 51, 42 and 46 appear to be on outlier side.
+
+```{r}
+plot(rew6,3)
+```
+
+#### 3.2.3 Fitted Values vs SquareRoot of Standardized Residuals
+
+Majority of the points are in a group and none too far from the center. However pbservations 51. 42 and 56 appear to be off the mark.
+
+```{r}
+plot(rew6,5)
+```
+
+#### 3.2.4 Residuals vs Leverage Plots
+
+The points are in a group with none too far from the center. However 51, 56 and 67 appear to be off the mark. However, these values may be significant and should not be omitted.
